@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ad Sniper — 차단 목록</title>
+  <link rel="stylesheet" href="./options.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚫 Ad Sniper — 차단 목록</h1>
+      <p>우클릭으로 차단한 광고 패턴 목록입니다.</p>
+    </header>
+
+    <div class="toolbar">
+      <span id="count">0개 차단 중</span>
+      <button id="clear-all" class="danger">전체 초기화</button>
+    </div>
+
+    <ul id="list" class="list">
+      <li class="empty">차단된 광고가 없습니다.</li>
+    </ul>
+  </div>
+
+  <script type="module" src="./options.js"></script>
+</body>
+</html>
