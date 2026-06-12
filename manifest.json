@@ -1,26 +1,22 @@
 {
   "manifest_version": 3,
   "name": "Ad Sniper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "보기 싫은 광고만 골라서 차단하세요.",
-
   "permissions": [
     "storage",
     "contextMenus",
     "declarativeNetRequest"
   ],
-
   "host_permissions": [
     "*://*.tistory.com/*",
     "*://*.velog.io/*",
     "*://*.naver.com/*",
     "*://*.daum.net/*"
   ],
-
   "background": {
     "service_worker": "dist/service-worker.js"
   },
-
   "content_scripts": [
     {
       "matches": [
@@ -29,12 +25,13 @@
         "*://*.naver.com/*",
         "*://*.daum.net/*"
       ],
-      "js": ["dist/content.js"],
+      "js": [
+        "dist/content.js"
+      ],
       "run_at": "document_idle",
       "all_frames": true
     }
   ],
-
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -44,12 +41,10 @@
       }
     ]
   },
-
   "options_ui": {
     "page": "dist/src/options/options.html",
     "open_in_tab": true
   },
-
   "action": {
     "default_popup": "dist/src/popup/popup.html",
     "default_icon": {
@@ -58,10 +53,11 @@
       "128": "icons/icon128.png"
     }
   },
-
   "web_accessible_resources": [
     {
-      "resources": ["dist/src/blocked.html"],
+      "resources": [
+        "dist/src/blocked.html"
+      ],
       "matches": [
         "*://*.tistory.com/*",
         "*://*.velog.io/*",
@@ -70,7 +66,6 @@
       ]
     }
   ],
-
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
