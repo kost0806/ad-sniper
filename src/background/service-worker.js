@@ -12,7 +12,11 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== MENU_ID || !tab?.id) return
-  chrome.tabs.sendMessage(tab.id, { type: 'BLOCK_TARGET' })
+  chrome.tabs.sendMessage(tab.id, {
+    type: 'BLOCK_TARGET',
+    frameId: info.frameId ?? 0,
+    frameUrl: info.frameUrl ?? null,
+  })
 })
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

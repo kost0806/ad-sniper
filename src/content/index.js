@@ -56,19 +56,41 @@ document.addEventListener('contextmenu', e => {
 
 // Listen for BLOCK_TARGET message from service worker (via context menu)
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'BLOCK_TARGET') {
-    const el = lastContextTarget
-    if (!el || el === document.body || el === document.documentElement) return
+  if (msg.type !== 'BLOCK_TARGET') return
 
-    const fp = getFingerprint(el)
-    blockWithFingerprint(el, fp)
+  let el = null
 
-    // Persist and add network rule
-    chrome.runtime.sendMessage({ type: 'BLOCK', fingerprint: fp })
-
-    // Update local list for this session
-    blockedFingerprints.push(fp)
+  if (msg.frameId && msg.frameId > 0 && msg.frameUrl) {
+    // Right-click happened inside a cross-origin iframe — find it by src in the main page
+    el = findIframeByUrl(msg.frameUrl)
+  } else {
+    el = lastContextTarget
   }
+
+  if (!el || el === document.body || el === document.documentElement) return
+
+  const fp = getFingerprint(el)
+  blockWithFingerprint(el, fp)
+
+  chrome.runtime.sendMessage({ type: 'BLOCK', fingerprint: fp })
+  blockedFingerprints.push(fp)
 })
+
+function findIframeByUrl(frameUrl) {
+  try {
+    const targetHostname = new URL(frameUrl).hostname
+    // Find the iframe whose src hostname matches, then walk up to its ad container
+    for (const iframe of document.querySelectorAll('iframe[src]')) {
+      try {
+        if (new URL(iframe.src).hostname === targetHostname) {
+          // Prefer the parent container if it has an ad-like id
+          const container = iframe.closest('[id*="google_ads"], [id*="__container__"], [id*="ad_"]')
+          return container || iframe
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
+  return null
+}
 
 init()
