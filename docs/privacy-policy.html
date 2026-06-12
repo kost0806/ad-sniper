@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개인정보처리방침 — Ad Sniper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fafafa;
+      color: #1a1a1a;
+      line-height: 1.8;
+      padding: 48px 24px 80px;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ef4444;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin-bottom: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      font-size: 14px;
+      color: #888;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 12px;
+      padding-left: 12px;
+      border-left: 3px solid #ef4444;
+    }
+
+    p {
+      font-size: 15px;
+      color: #444;
+      margin-bottom: 12px;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    li {
+      font-size: 15px;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .highlight {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .highlight p {
+      color: #166534;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #f4f4f5;
+      color: #555;
+      font-weight: 600;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #444;
+      vertical-align: top;
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 13px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    a {
+      color: #ef4444;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Ad Sniper</div>
+      <h1>개인정보처리방침</h1>
+      <p class="meta">최초 작성일: 2025년 6월 12일 &nbsp;·&nbsp; 최종 수정일: 2025년 6월 12일</p>
+    </header>
+
+    <section>
+      <div class="highlight">
+        <p>🔒 Ad Sniper는 사용자의 어떠한 개인정보도 수집하거나 외부 서버로 전송하지 않습니다. 모든 데이터는 사용자의 브라우저 로컬 저장소에만 보관됩니다.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>1. 수집하는 정보</h2>
+      <p>Ad Sniper는 사용자의 개인정보를 수집하지 않습니다. 확장이 저장하는 유일한 데이터는 다음과 같습니다:</p>
+      <ul>
+        <li><strong>차단된 광고 목록</strong>: 사용자가 직접 차단한 광고의 식별자(광고 요소의 도메인, ID, CSS 선택자)가 브라우저의 로컬 저장소(<code>chrome.storage.local</code>)에 저장됩니다.</li>
+      </ul>
+      <p>이 데이터는 사용자의 기기 밖으로 전송되지 않으며, 제3자와 공유되지 않습니다.</p>
+    </section>
+
+    <section>
+      <h2>2. 권한 사용 목적</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>권한</th>
+            <th>사용 목적</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>storage</code></td>
+            <td>차단된 광고 목록을 브라우저 로컬 저장소에 저장</td>
+          </tr>
+          <tr>
+            <td><code>contextMenus</code></td>
+            <td>우클릭 시 "이 광고 차단" 메뉴 항목 표시</td>
+          </tr>
+          <tr>
+            <td><code>declarativeNetRequest</code></td>
+            <td>차단된 광고 도메인의 네트워크 요청 차단</td>
+          </tr>
+          <tr>
+            <td><code>scripting</code></td>
+            <td>사용자가 허용한 사이트에 광고 차단 스크립트 주입</td>
+          </tr>
+          <tr>
+            <td><code>activeTab</code></td>
+            <td>현재 활성 탭의 정보 접근 (팝업에서 사이트 표시)</td>
+          </tr>
+          <tr>
+            <td>선택적 호스트 권한 <code>*://*/*</code></td>
+            <td>사용자가 팝업에서 직접 허용한 사이트에서만 광고 차단 기능 동작. 허용하지 않은 사이트에는 접근하지 않습니다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>3. 제3자 데이터 공유</h2>
+      <p>Ad Sniper는 수집된 데이터를 제3자와 공유하지 않습니다. 외부 서버, 분석 서비스, 광고 네트워크와의 통신이 없습니다.</p>
+    </section>
+
+    <section>
+      <h2>4. 데이터 보관 및 삭제</h2>
+      <p>차단 목록은 사용자의 브라우저에만 저장되며, 다음 방법으로 언제든지 삭제할 수 있습니다:</p>
+      <ul>
+        <li>확장 팝업 → "차단 목록 관리"에서 개별 항목 삭제</li>
+        <li>Chrome 설정에서 확장을 제거하면 모든 데이터가 삭제됩니다</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. 방침 변경</h2>
+      <p>본 개인정보처리방침이 변경될 경우, 이 페이지를 통해 공지합니다. 변경 사항은 페이지 상단의 최종 수정일을 통해 확인할 수 있습니다.</p>
+    </section>
+
+    <section>
+      <h2>6. 문의</h2>
+      <p>개인정보처리방침에 관한 문의는 <a href="https://github.com/kost0806/ad-sniper/issues">GitHub Issues</a>를 통해 남겨주세요.</p>
+    </section>
+
+    <footer>
+      <p>Ad Sniper &nbsp;·&nbsp; <a href="https://github.com/kost0806/ad-sniper">GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>
