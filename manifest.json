@@ -1,9 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Ad Sniper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "보기 싫은 광고만 골라서 차단하세요.",
-
   "permissions": [
     "storage",
     "contextMenus",
@@ -11,13 +10,12 @@
     "scripting",
     "activeTab"
   ],
-
-  "optional_host_permissions": ["*://*/*"],
-
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
   "background": {
     "service_worker": "dist/service-worker.js"
   },
-
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -27,12 +25,10 @@
       }
     ]
   },
-
   "options_ui": {
     "page": "dist/src/options/options.html",
     "open_in_tab": true
   },
-
   "action": {
     "default_popup": "dist/src/popup/popup.html",
     "default_icon": {
@@ -41,18 +37,19 @@
       "128": "icons/icon128.png"
     }
   },
-
   "web_accessible_resources": [
     {
-      "resources": ["dist/src/blocked.html"],
-      "matches": ["*://*/*"]
+      "resources": [
+        "dist/src/blocked.html"
+      ],
+      "matches": [
+        "*://*/*"
+      ]
     }
   ],
-
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }
 }
-
