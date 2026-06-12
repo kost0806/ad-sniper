@@ -1,30 +1,25 @@
 import { getBlockedFingerprints, getDisabledHosts, serializeFingerprint } from '../shared/storage.js'
 import { getFingerprint, matchesFingerprint } from '../shared/fingerprint.js'
-import { hideElement, blockWithFingerprint, isLocked, SESSION_BLOCKED } from './blocker.js'
+import { replaceWithBlockedPage, blockWithFingerprint, isLocked, SESSION_BLOCKED } from './blocker.js'
 
 let blockedFingerprints = []
 let lastContextTarget = null
 
 async function init() {
-  // Check if extension is disabled on this host
   const disabledHosts = await getDisabledHosts()
   if (disabledHosts.includes(location.hostname)) return
 
   blockedFingerprints = await getBlockedFingerprints()
-
-  // Populate session set from storage
   blockedFingerprints.forEach(fp => SESSION_BLOCKED.add(serializeFingerprint(fp)))
 
-  // Initial scan
-  scanAll()
+  applyStoredBlocks()
 
-  // Watch for dynamically injected ads
   const observer = new MutationObserver(mutations => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== 1) continue
         if (isLocked(node)) {
-          hideElement(node)
+          replaceWithBlockedPage(node)
           continue
         }
         checkElement(node)
@@ -34,8 +29,8 @@ async function init() {
   observer.observe(document.body, { childList: true, subtree: true })
 }
 
-function scanAll() {
-  const candidates = document.querySelectorAll('iframe, ins, [id*="ad"], [class*="ad"], [id*="banner"], [class*="banner"]')
+function applyStoredBlocks() {
+  const candidates = document.querySelectorAll('iframe, ins')
   candidates.forEach(checkElement)
 }
 
@@ -43,35 +38,56 @@ function checkElement(el) {
   if (el.dataset.adsniperBlocked) return
   for (const fp of blockedFingerprints) {
     if (matchesFingerprint(el, fp)) {
-      hideElement(el)
+      replaceWithBlockedPage(el)
       return
     }
   }
 }
 
-// Track last right-clicked element
+// --- Context menu gating ---
+
+function findAdEl(el) {
+  let node = el
+  for (let i = 0; i < 4; i++) {
+    if (!node) return null
+    if (node.tagName === 'IFRAME' || node.tagName === 'INS') return node
+    node = node.parentElement
+  }
+  return null
+}
+
+// Main-frame right-click: enable menu only on iframe/ins targets
 document.addEventListener('contextmenu', e => {
   lastContextTarget = e.target
+  const adEl = findAdEl(e.target)
+  chrome.runtime.sendMessage({ type: 'UPDATE_MENU', enabled: !!adEl })
 })
 
-// Listen for BLOCK_TARGET message from service worker (via context menu)
+// Pre-enable menu when hovering over an iframe so that right-clicking
+// INSIDE a cross-origin iframe also shows the enabled menu item
+document.addEventListener('mouseover', e => {
+  if (e.target.tagName === 'IFRAME') {
+    chrome.runtime.sendMessage({ type: 'UPDATE_MENU', enabled: true })
+  }
+}, true)
+
+// --- Block handler ---
+
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type !== 'BLOCK_TARGET') return
 
   let el = null
 
   if (msg.frameId && msg.frameId > 0 && msg.frameUrl) {
-    // Right-click happened inside a cross-origin iframe — find it by src in the main page
     el = findIframeByUrl(msg.frameUrl)
   } else {
-    el = lastContextTarget
+    el = findAdEl(lastContextTarget)
   }
 
-  if (!el || el === document.body || el === document.documentElement) return
+  if (!el) return
 
   const fp = getFingerprint(el)
   blockWithFingerprint(el, fp)
-
   chrome.runtime.sendMessage({ type: 'BLOCK', fingerprint: fp })
   blockedFingerprints.push(fp)
 })
@@ -79,13 +95,10 @@ chrome.runtime.onMessage.addListener((msg) => {
 function findIframeByUrl(frameUrl) {
   try {
     const targetHostname = new URL(frameUrl).hostname
-    // Find the iframe whose src hostname matches, then walk up to its ad container
     for (const iframe of document.querySelectorAll('iframe[src]')) {
       try {
         if (new URL(iframe.src).hostname === targetHostname) {
-          // Prefer the parent container if it has an ad-like id
-          const container = iframe.closest('[id*="google_ads"], [id*="__container__"], [id*="ad_"]')
-          return container || iframe
+          return iframe.closest('[id*="google_ads"], [id*="__container__"]') || iframe
         }
       } catch (_) {}
     }

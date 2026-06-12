@@ -7,6 +7,7 @@ chrome.runtime.onInstalled.addListener(() => {
     id: MENU_ID,
     title: '🚫 이 광고 차단',
     contexts: ['all'],
+    enabled: false,
   })
 })
 
@@ -17,9 +18,19 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     frameId: info.frameId ?? 0,
     frameUrl: info.frameUrl ?? null,
   })
+  // Reset menu to disabled after use
+  chrome.contextMenus.update(MENU_ID, { enabled: false })
 })
 
+// Enable menu when right-clicking inside any subframe (cross-origin iframe)
+// Content script handles the main-frame ins/iframe case via UPDATE_MENU
+chrome.webNavigation?.onCommitted.addListener(() => {})  // keep service worker alive hint
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type === 'UPDATE_MENU') {
+    chrome.contextMenus.update(MENU_ID, { enabled: msg.enabled })
+    return
+  }
   if (msg.type === 'BLOCK') {
     handleBlock(msg.fingerprint).then(() => sendResponse({ ok: true }))
     return true // async response

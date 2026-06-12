@@ -54,6 +54,7 @@ export default defineConfig(({ mode }) => {
         input: {
           popup: resolve(__dirname, 'src/popup/popup.html'),
           options: resolve(__dirname, 'src/options/options.html'),
+          blocked: resolve(__dirname, 'src/blocked.html'),
         },
         output: {
           entryFileNames: '[name].js',

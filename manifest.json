@@ -59,6 +59,18 @@
     }
   },
 
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/src/blocked.html"],
+      "matches": [
+        "*://*.tistory.com/*",
+        "*://*.velog.io/*",
+        "*://*.naver.com/*",
+        "*://*.daum.net/*"
+      ]
+    }
+  ],
+
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
