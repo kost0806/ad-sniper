@@ -172,6 +172,7 @@ function createFakeCursor() {
       <line x1="48" y1="48" x2="44" y2="44" stroke="rgba(255,60,60,0.4)" stroke-width="1" stroke-linecap="round"/>
     </svg>
   `
+  fakeCursor.style.setProperty('display', 'none', 'important')
   document.body.appendChild(fakeCursor)
 }
 
