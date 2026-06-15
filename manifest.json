@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ad Sniper",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Selectively block only the ads you don't want to see. Hover over any ad, click to snipe it, and it's gone. Per-ad blocking with one click.",
   "permissions": [
     "storage",
@@ -16,8 +16,13 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["dist/content.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
