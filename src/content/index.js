@@ -1,5 +1,5 @@
 import { getBlockedFingerprints, serializeFingerprint, isSiteDisabled } from '../shared/storage.js'
-import { getFingerprint, matchesFingerprint } from '../shared/fingerprint.js'
+import { getFingerprint, matchesFingerprint, isAdIframe } from '../shared/fingerprint.js'
 import { replaceWithBlockedPage, blockWithFingerprint, isLocked, SESSION_BLOCKED } from './blocker.js'
 
 const isSubframe = window !== window.top
@@ -203,10 +203,10 @@ function checkElement(el) {
 }
 
 function setupAdInteraction() {
-  // iframe: show overlay + fake cursor on hover
+  // iframe: show overlay + fake cursor on hover (ad iframes only)
   document.addEventListener('mouseover', e => {
     const el = e.target
-    if (el.tagName === 'IFRAME' && !el.dataset.adsniperBlocked) {
+    if (el.tagName === 'IFRAME' && !el.dataset.adsniperBlocked && isAdIframe(el)) {
       showHoverOverlay(el)
     }
   }, true)

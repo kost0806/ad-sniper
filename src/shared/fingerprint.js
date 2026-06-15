@@ -2,6 +2,33 @@
  * Computes a stable fingerprint from a DOM element.
  * Priority: iframe src hostname > element id > stable CSS selector
  */
+
+const AD_SRC_RE = /doubleclick|googlesyndication|adnxs|adsystem|pagead2|adservice|pubads|moatads|adsafeprotected|googleads|adform|criteo|taboola|outbrain|revcontent|media\.net|adtech|openx|rubiconproject|appnexus|smartadserver|advertising\.com|adsrvr\.org|casalemedia|demdex|flashtalking|freewheel|improve-digital|pubmatic|sizmek|sovrn|teads|triplelift|zedo/i
+
+/**
+ * Returns true only for iframes that are likely ads.
+ * Excludes iframes covering 80%+ of the viewport (content frames like Naver blog).
+ */
+export function isAdIframe(el) {
+  const rect = el.getBoundingClientRect()
+  if (rect.width * rect.height > window.innerWidth * window.innerHeight * 0.8) return false
+
+  if (el.closest('ins')) return true
+
+  const p = el.parentElement
+  if (p) {
+    const pid = p.id || ''
+    const pcls = typeof p.className === 'string' ? p.className : ''
+    if (/ad|banner|sponsor|promoted|advert/i.test(pid + ' ' + pcls)) return true
+  }
+
+  if (el.hasAttribute('sandbox')) return true
+
+  if (el.src && AD_SRC_RE.test(el.src)) return true
+
+  return false
+}
+
 export function getFingerprint(el) {
   // Walk up to find the most meaningful ad container
   const target = findAdRoot(el)
