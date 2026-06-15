@@ -8,19 +8,46 @@ let blockedFingerprints = []
 let hoverOverlay = null
 let activeMenu = null
 
-// Sniper scope cursor (32×32 SVG, hotspot at center 16,16)
-const SCOPE_SVG = encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">` +
-  `<circle cx="16" cy="16" r="13" stroke="#ff2222" stroke-width="1.5" fill="none" opacity="0.9"/>` +
-  `<circle cx="16" cy="16" r="7" stroke="#ff2222" stroke-width="0.7" fill="none" opacity="0.5"/>` +
-  `<line x1="16" y1="0" x2="16" y2="10" stroke="#ff2222" stroke-width="1.5" opacity="0.9"/>` +
-  `<line x1="16" y1="22" x2="16" y2="32" stroke="#ff2222" stroke-width="1.5" opacity="0.9"/>` +
-  `<line x1="0" y1="16" x2="10" y2="16" stroke="#ff2222" stroke-width="1.5" opacity="0.9"/>` +
-  `<line x1="22" y1="16" x2="32" y2="16" stroke="#ff2222" stroke-width="1.5" opacity="0.9"/>` +
-  `<circle cx="16" cy="16" r="1.5" fill="#ff2222" opacity="0.9"/>` +
-  `</svg>`
-)
-const SCOPE_CURSOR = `url("data:image/svg+xml,${SCOPE_SVG}") 16 16, crosshair`
+// Build scope cursor as PNG via Canvas (more reliable than SVG data URL for CSS cursor)
+function buildScopeCursorURL() {
+  try {
+    const c = document.createElement('canvas')
+    c.width = 32; c.height = 32
+    const ctx = c.getContext('2d')
+    const RED = '#ff2222'
+
+    // Outer circle
+    ctx.strokeStyle = RED; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9
+    ctx.beginPath(); ctx.arc(16, 16, 13, 0, Math.PI * 2); ctx.stroke()
+
+    // Inner circle
+    ctx.lineWidth = 0.7; ctx.globalAlpha = 0.5
+    ctx.beginPath(); ctx.arc(16, 16, 7, 0, Math.PI * 2); ctx.stroke()
+
+    // Crosshairs (gap around center)
+    ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9
+    ctx.beginPath()
+    ctx.moveTo(16, 0);  ctx.lineTo(16, 10)
+    ctx.moveTo(16, 22); ctx.lineTo(16, 32)
+    ctx.moveTo(0,  16); ctx.lineTo(10, 16)
+    ctx.moveTo(22, 16); ctx.lineTo(32, 16)
+    ctx.stroke()
+
+    // Center dot
+    ctx.fillStyle = RED; ctx.globalAlpha = 0.95
+    ctx.beginPath(); ctx.arc(16, 16, 1.5, 0, Math.PI * 2); ctx.fill()
+
+    return c.toDataURL('image/png')
+  } catch (_) {
+    return null
+  }
+}
+
+const SCOPE_CURSOR_URL = buildScopeCursorURL()
+// cursor CSS value — hotspot at (16,16), fallback to crosshair
+const SCOPE_CURSOR_CSS = SCOPE_CURSOR_URL
+  ? `url("${SCOPE_CURSOR_URL}") 16 16, crosshair`
+  : 'crosshair'
 
 async function init() {
   if (isSubframe) return
@@ -35,7 +62,7 @@ async function init() {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== 1) continue
-        if (node.dataset.adsniperOwned) continue  // skip our own injected nodes
+        if (node.dataset.adsniperOwned) continue
         if (isLocked(node)) { replaceWithBlockedPage(node); continue }
         checkElement(node)
       }
@@ -51,6 +78,18 @@ function injectStyles() {
   const style = document.createElement('style')
   style.dataset.adsniperOwned = 'true'
   style.textContent = `
+    .adsniper-scope-cursor,
+    .adsniper-scope-cursor * {
+      cursor: ${SCOPE_CURSOR_CSS} !important;
+    }
+    .adsniper-hover-overlay {
+      position: fixed !important;
+      z-index: 2147483646 !important;
+      pointer-events: all !important;
+      /* Near-zero alpha ensures hit-testing works on transparent overlays */
+      background: rgba(255, 0, 0, 0.01) !important;
+      display: none !important;
+    }
     .adsniper-menu {
       position: fixed !important;
       z-index: 2147483647 !important;
@@ -141,44 +180,34 @@ function checkElement(el) {
   }
 }
 
-function findAdEl(el) {
-  let node = el
-  for (let i = 0; i < 4; i++) {
-    if (!node) return null
-    if (node.tagName === 'IFRAME' || node.tagName === 'INS') return node
-    node = node.parentElement
-  }
-  return null
-}
-
 function setupAdInteraction() {
-  // iframe hover: show transparent overlay with scope cursor
+  // iframe: show overlay with scope cursor on hover
   document.addEventListener('mouseover', e => {
-    if (e.target.tagName === 'IFRAME' && !e.target.dataset.adsniperBlocked) {
-      showHoverOverlay(e.target)
+    const el = e.target
+    if (el.tagName === 'IFRAME' && !el.dataset.adsniperBlocked) {
+      showHoverOverlay(el)
     }
   }, true)
 
-  // ins hover: set scope cursor directly
+  // ins: apply scope cursor class on hover
   document.addEventListener('mouseover', e => {
     const ins = e.target.closest?.('ins')
     if (ins && !ins.dataset.adsniperBlocked) {
-      ins.style.setProperty('cursor', SCOPE_CURSOR, 'important')
+      ins.classList.add('adsniper-scope-cursor')
     }
   })
 
-  // ins hover out: reset cursor
   document.addEventListener('mouseout', e => {
     const ins = e.target.closest?.('ins')
     if (!ins || ins.dataset.adsniperBlocked) return
     if (!ins.contains(e.relatedTarget)) {
-      ins.style.removeProperty('cursor')
+      ins.classList.remove('adsniper-scope-cursor')
     }
   })
 
-  // ins left-click: show block menu (capture phase so we intercept before ad receives it)
+  // ins left-click: show block menu
   document.addEventListener('click', e => {
-    if (e.target.dataset?.adsniperAction === 'unblock') return  // let unblock handler take it
+    if (e.target.dataset?.adsniperAction === 'unblock') return
     if (activeMenu?.contains(e.target)) return
     const ins = e.target.closest?.('ins')
     if (ins && !ins.dataset.adsniperBlocked) {
@@ -188,12 +217,11 @@ function setupAdInteraction() {
     }
   }, true)
 
-  // Dismiss menu when clicking outside
+  // Dismiss menu on outside click
   document.addEventListener('click', e => {
     if (activeMenu && !activeMenu.contains(e.target)) closeMenu()
   })
 
-  // Dismiss menu on Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeMenu()
   })
@@ -202,6 +230,7 @@ function setupAdInteraction() {
 function showHoverOverlay(iframe) {
   if (!hoverOverlay) {
     hoverOverlay = document.createElement('div')
+    hoverOverlay.className = 'adsniper-hover-overlay adsniper-scope-cursor'
     hoverOverlay.dataset.adsniperOwned = 'true'
     hoverOverlay.addEventListener('click', e => {
       e.preventDefault()
@@ -209,25 +238,20 @@ function showHoverOverlay(iframe) {
       showBlockMenu(e.clientX, e.clientY, hoverOverlay._adEl)
     })
     hoverOverlay.addEventListener('mouseleave', () => {
-      hoverOverlay.style.display = 'none'
+      hoverOverlay.style.setProperty('display', 'none', 'important')
     })
     document.body.appendChild(hoverOverlay)
   }
 
   const rect = iframe.getBoundingClientRect()
+  if (!rect.width || !rect.height) return  // skip zero-size iframes
+
   hoverOverlay._adEl = iframe
-  hoverOverlay.style.cssText = `
-    position: fixed !important;
-    z-index: 2147483646 !important;
-    pointer-events: all !important;
-    background: transparent !important;
-    display: block !important;
-    left: ${rect.left}px !important;
-    top: ${rect.top}px !important;
-    width: ${rect.width}px !important;
-    height: ${rect.height}px !important;
-    cursor: ${SCOPE_CURSOR} !important;
-  `
+  hoverOverlay.style.setProperty('left',   rect.left   + 'px', 'important')
+  hoverOverlay.style.setProperty('top',    rect.top    + 'px', 'important')
+  hoverOverlay.style.setProperty('width',  rect.width  + 'px', 'important')
+  hoverOverlay.style.setProperty('height', rect.height + 'px', 'important')
+  hoverOverlay.style.setProperty('display', 'block', 'important')
 }
 
 function showBlockMenu(x, y, adEl) {
@@ -255,26 +279,22 @@ function showBlockMenu(x, y, adEl) {
     blockWithFingerprint(adEl, fp)
     chrome.runtime.sendMessage({ type: 'BLOCK', fingerprint: fp })
     blockedFingerprints.push(fp)
-    if (hoverOverlay) hoverOverlay.style.display = 'none'
+    if (hoverOverlay) hoverOverlay.style.setProperty('display', 'none', 'important')
     closeMenu()
   }
 
   menu.querySelector('.adsniper-view-btn').onclick = () => closeMenu()
 
   document.body.appendChild(menu)
-
-  // Initial position: place at click point, then clamp into viewport
-  menu.style.left = x + 'px'
-  menu.style.top = y + 'px'
+  menu.style.setProperty('left', x + 'px', 'important')
+  menu.style.setProperty('top',  y + 'px', 'important')
 
   requestAnimationFrame(() => {
     if (!activeMenu) return
     const r = menu.getBoundingClientRect()
-    const vw = window.innerWidth
-    const vh = window.innerHeight
     const margin = 8
-    if (r.right > vw - margin) menu.style.left = (vw - r.width - margin) + 'px'
-    if (r.bottom > vh - margin) menu.style.top = (y - r.height - margin) + 'px'
+    if (r.right  > window.innerWidth  - margin) menu.style.setProperty('left', (window.innerWidth  - r.width  - margin) + 'px', 'important')
+    if (r.bottom > window.innerHeight - margin) menu.style.setProperty('top',  (y - r.height - margin) + 'px', 'important')
   })
 }
 
