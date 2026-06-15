@@ -1,4 +1,4 @@
-import { getBlockedFingerprints, serializeFingerprint } from '../shared/storage.js'
+import { getBlockedFingerprints, serializeFingerprint, isSiteDisabled } from '../shared/storage.js'
 import { getFingerprint, matchesFingerprint } from '../shared/fingerprint.js'
 import { replaceWithBlockedPage, blockWithFingerprint, isLocked, SESSION_BLOCKED } from './blocker.js'
 
@@ -11,6 +11,7 @@ let fakeCursor = null   // DOM-based scope cursor (immune to page CSP)
 
 async function init() {
   if (isSubframe) return
+  if (await isSiteDisabled(location.hostname)) return
 
   blockedFingerprints = await getBlockedFingerprints()
   blockedFingerprints.forEach(fp => SESSION_BLOCKED.add(serializeFingerprint(fp)))
