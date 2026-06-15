@@ -4,7 +4,7 @@ const CONTENT_SCRIPT_ID = 'adsniper-content'
 
 async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  if (!tab?.url) return
+  if (!tab?.url || !tab.id) return
 
   let origin
   try {
