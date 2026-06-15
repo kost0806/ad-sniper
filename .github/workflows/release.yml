@@ -66,3 +66,4 @@ jobs:
           name: Ad Sniper v${{ steps.version.outputs.new_version }}
           files: ad-sniper-${{ steps.version.outputs.new_version }}.zip
           generate_release_notes: true
+          draft: false
