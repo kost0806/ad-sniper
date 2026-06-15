@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Ad Sniper",
   "version": "0.0.1",
-  "description": "Selectively block only the ads you don't want to see. Hover over any ad, click to snipe it, and it's gone. Per-ad blocking with one click.",
+  "description": "원하지 않는 광고만 선택적으로 차단하세요. 광고 위에 마우스를 올리고 클릭 한 번으로 즉시 제거할 수 있습니다. 필요한 광고는 남기고 불필요한 광고만 골라서 없애세요.",
   "permissions": [
     "storage",
     "declarativeNetRequest",
