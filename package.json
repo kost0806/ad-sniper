@@ -1,6 +1,6 @@
 {
   "name": "ad-sniper",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Block only the ads you don't want to see",
   "scripts": {
     "build": "vite build && vite build --mode content && vite build --mode worker",
