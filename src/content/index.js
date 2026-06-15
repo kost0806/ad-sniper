@@ -11,7 +11,13 @@ let fakeCursor = null   // DOM-based scope cursor (immune to page CSP)
 
 async function init() {
   if (isSubframe) return
-  if (await isSiteDisabled(location.hostname)) return
+
+  console.debug('[AdSniper] content script loaded on', location.hostname)
+
+  if (await isSiteDisabled(location.hostname)) {
+    console.debug('[AdSniper] disabled for this site')
+    return
+  }
 
   blockedFingerprints = await getBlockedFingerprints()
   blockedFingerprints.forEach(fp => SESSION_BLOCKED.add(serializeFingerprint(fp)))
@@ -358,4 +364,4 @@ async function handleUnblock(container) {
   location.reload()
 }
 
-init()
+init().catch(err => console.error('[AdSniper] init failed:', err))
