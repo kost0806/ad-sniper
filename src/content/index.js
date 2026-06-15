@@ -7,47 +7,7 @@ const isSubframe = window !== window.top
 let blockedFingerprints = []
 let hoverOverlay = null
 let activeMenu = null
-
-// Build scope cursor as PNG via Canvas (more reliable than SVG data URL for CSS cursor)
-function buildScopeCursorURL() {
-  try {
-    const c = document.createElement('canvas')
-    c.width = 32; c.height = 32
-    const ctx = c.getContext('2d')
-    const RED = '#ff2222'
-
-    // Outer circle
-    ctx.strokeStyle = RED; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9
-    ctx.beginPath(); ctx.arc(16, 16, 13, 0, Math.PI * 2); ctx.stroke()
-
-    // Inner circle
-    ctx.lineWidth = 0.7; ctx.globalAlpha = 0.5
-    ctx.beginPath(); ctx.arc(16, 16, 7, 0, Math.PI * 2); ctx.stroke()
-
-    // Crosshairs (gap around center)
-    ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9
-    ctx.beginPath()
-    ctx.moveTo(16, 0);  ctx.lineTo(16, 10)
-    ctx.moveTo(16, 22); ctx.lineTo(16, 32)
-    ctx.moveTo(0,  16); ctx.lineTo(10, 16)
-    ctx.moveTo(22, 16); ctx.lineTo(32, 16)
-    ctx.stroke()
-
-    // Center dot
-    ctx.fillStyle = RED; ctx.globalAlpha = 0.95
-    ctx.beginPath(); ctx.arc(16, 16, 1.5, 0, Math.PI * 2); ctx.fill()
-
-    return c.toDataURL('image/png')
-  } catch (_) {
-    return null
-  }
-}
-
-const SCOPE_CURSOR_URL = buildScopeCursorURL()
-// cursor CSS value — hotspot at (16,16), fallback to crosshair
-const SCOPE_CURSOR_CSS = SCOPE_CURSOR_URL
-  ? `url("${SCOPE_CURSOR_URL}") 16 16, crosshair`
-  : 'crosshair'
+let fakeCursor = null   // DOM-based scope cursor (immune to page CSP)
 
 async function init() {
   if (isSubframe) return
@@ -57,6 +17,7 @@ async function init() {
 
   applyStoredBlocks()
   injectStyles()
+  createFakeCursor()
 
   const observer = new MutationObserver(mutations => {
     for (const mutation of mutations) {
@@ -78,10 +39,6 @@ function injectStyles() {
   const style = document.createElement('style')
   style.dataset.adsniperOwned = 'true'
   style.textContent = `
-    .adsniper-scope-cursor,
-    .adsniper-scope-cursor * {
-      cursor: ${SCOPE_CURSOR_CSS} !important;
-    }
     .adsniper-hover-overlay {
       position: fixed !important;
       z-index: 2147483646 !important;
@@ -89,6 +46,19 @@ function injectStyles() {
       /* Near-zero alpha ensures hit-testing works on transparent overlays */
       background: rgba(255, 0, 0, 0.01) !important;
       display: none !important;
+      cursor: none !important;
+    }
+    .adsniper-scope-ins {
+      cursor: none !important;
+    }
+    .adsniper-fake-cursor {
+      position: fixed !important;
+      pointer-events: none !important;
+      z-index: 2147483647 !important;
+      display: none !important;
+      transform: translate(-50%, -50%) !important;
+      width: 64px !important;
+      height: 64px !important;
     }
     .adsniper-menu {
       position: fixed !important;
@@ -166,6 +136,50 @@ function injectStyles() {
   document.head.appendChild(style)
 }
 
+function createFakeCursor() {
+  fakeCursor = document.createElement('div')
+  fakeCursor.className = 'adsniper-fake-cursor'
+  fakeCursor.dataset.adsniperOwned = 'true'
+  // Scope crosshair SVG — inline, bypasses any img-src CSP
+  fakeCursor.innerHTML = `
+    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <!-- outer ring -->
+      <circle cx="32" cy="32" r="22" fill="none" stroke="rgba(255,60,60,0.9)" stroke-width="2"/>
+      <!-- inner ring -->
+      <circle cx="32" cy="32" r="12" fill="none" stroke="rgba(255,60,60,0.7)" stroke-width="1.2"/>
+      <!-- center dot -->
+      <circle cx="32" cy="32" r="2.5" fill="rgba(255,60,60,1)"/>
+      <!-- crosshairs: top -->
+      <line x1="32" y1="2"  x2="32" y2="16" stroke="rgba(255,60,60,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <!-- crosshairs: bottom -->
+      <line x1="32" y1="48" x2="32" y2="62" stroke="rgba(255,60,60,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <!-- crosshairs: left -->
+      <line x1="2"  y1="32" x2="16" y2="32" stroke="rgba(255,60,60,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <!-- crosshairs: right -->
+      <line x1="48" y1="32" x2="62" y2="32" stroke="rgba(255,60,60,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <!-- tick marks on outer ring (12, 3, 6, 9 o'clock gaps already covered by crosshairs) -->
+      <!-- range finder lines at 45° -->
+      <line x1="16" y1="16" x2="20" y2="20" stroke="rgba(255,60,60,0.4)" stroke-width="1" stroke-linecap="round"/>
+      <line x1="48" y1="16" x2="44" y2="20" stroke="rgba(255,60,60,0.4)" stroke-width="1" stroke-linecap="round"/>
+      <line x1="16" y1="48" x2="20" y2="44" stroke="rgba(255,60,60,0.4)" stroke-width="1" stroke-linecap="round"/>
+      <line x1="48" y1="48" x2="44" y2="44" stroke="rgba(255,60,60,0.4)" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+  `
+  document.body.appendChild(fakeCursor)
+}
+
+function showFakeCursor(x, y) {
+  if (!fakeCursor) return
+  fakeCursor.style.setProperty('left', x + 'px', 'important')
+  fakeCursor.style.setProperty('top',  y + 'px', 'important')
+  fakeCursor.style.setProperty('display', 'block', 'important')
+}
+
+function hideFakeCursor() {
+  if (!fakeCursor) return
+  fakeCursor.style.setProperty('display', 'none', 'important')
+}
+
 function applyStoredBlocks() {
   document.querySelectorAll('iframe, ins').forEach(el => checkElement(el))
 }
@@ -181,7 +195,7 @@ function checkElement(el) {
 }
 
 function setupAdInteraction() {
-  // iframe: show overlay with scope cursor on hover
+  // iframe: show overlay + fake cursor on hover
   document.addEventListener('mouseover', e => {
     const el = e.target
     if (el.tagName === 'IFRAME' && !el.dataset.adsniperBlocked) {
@@ -189,19 +203,30 @@ function setupAdInteraction() {
     }
   }, true)
 
-  // ins: apply scope cursor class on hover
+  // ins: show fake cursor on hover
   document.addEventListener('mouseover', e => {
     const ins = e.target.closest?.('ins')
     if (ins && !ins.dataset.adsniperBlocked) {
-      ins.classList.add('adsniper-scope-cursor')
+      ins.classList.add('adsniper-scope-ins')
+      showFakeCursor(e.clientX, e.clientY)
     }
   })
+
+  document.addEventListener('mousemove', e => {
+    if (fakeCursor && fakeCursor.style.display !== 'none') {
+      showFakeCursor(e.clientX, e.clientY)
+    }
+    if (hoverOverlay && hoverOverlay.style.display !== 'none') {
+      showFakeCursor(e.clientX, e.clientY)
+    }
+  }, true)
 
   document.addEventListener('mouseout', e => {
     const ins = e.target.closest?.('ins')
     if (!ins || ins.dataset.adsniperBlocked) return
     if (!ins.contains(e.relatedTarget)) {
-      ins.classList.remove('adsniper-scope-cursor')
+      ins.classList.remove('adsniper-scope-ins')
+      hideFakeCursor()
     }
   })
 
@@ -230,15 +255,19 @@ function setupAdInteraction() {
 function showHoverOverlay(iframe) {
   if (!hoverOverlay) {
     hoverOverlay = document.createElement('div')
-    hoverOverlay.className = 'adsniper-hover-overlay adsniper-scope-cursor'
+    hoverOverlay.className = 'adsniper-hover-overlay'
     hoverOverlay.dataset.adsniperOwned = 'true'
     hoverOverlay.addEventListener('click', e => {
       e.preventDefault()
       e.stopPropagation()
       showBlockMenu(e.clientX, e.clientY, hoverOverlay._adEl)
     })
+    hoverOverlay.addEventListener('mousemove', e => {
+      showFakeCursor(e.clientX, e.clientY)
+    })
     hoverOverlay.addEventListener('mouseleave', () => {
       hoverOverlay.style.setProperty('display', 'none', 'important')
+      hideFakeCursor()
     })
     document.body.appendChild(hoverOverlay)
   }
@@ -256,6 +285,7 @@ function showHoverOverlay(iframe) {
 
 function showBlockMenu(x, y, adEl) {
   closeMenu()
+  hideFakeCursor()
 
   const menu = document.createElement('div')
   menu.className = 'adsniper-menu'
