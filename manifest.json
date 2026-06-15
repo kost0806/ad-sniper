@@ -5,7 +5,6 @@
   "description": "보기 싫은 광고만 골라서 차단하세요.",
   "permissions": [
     "storage",
-    "contextMenus",
     "declarativeNetRequest",
     "scripting",
     "activeTab"
