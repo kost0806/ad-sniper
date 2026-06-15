@@ -4,6 +4,7 @@ export const SESSION_BLOCKED = new Set()
 
 let blockedUICounter = 0
 
+// All HTML is static/hardcoded — no user input or remote data is ever inserted
 function createBlockedHTML() {
   const id = `adsniper-g${++blockedUICounter}`
   return `
