@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ad Sniper",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "원하지 않는 광고만 선택적으로 차단하세요. 광고 위에 마우스를 올리고 클릭 한 번으로 즉시 제거할 수 있습니다. 필요한 광고는 남기고 불필요한 광고만 골라서 없애세요.",
   "permissions": [
     "storage",
