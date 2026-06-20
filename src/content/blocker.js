@@ -1,4 +1,5 @@
 import { serializeFingerprint } from '../shared/storage.js'
+import { t } from '../shared/i18n.js'
 
 export const SESSION_BLOCKED = new Set()
 
@@ -31,8 +32,8 @@ function createBlockedHTML() {
       <circle cx="60" cy="60" r="22" fill="url(#${id})"/>
       <ellipse cx="53" cy="52" rx="6" ry="4" fill="#ffffff" opacity="0.04" transform="rotate(-20 53 52)"/>
     </svg>
-    <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;color:#555;letter-spacing:0.03em;text-align:center;">광고가 차단되었습니다</span>
-    <button data-adsniper-action="unblock" style="background:none;border:1px solid #2a2a2a;color:#444;font-size:10px;padding:4px 14px;border-radius:4px;cursor:pointer;font-family:-apple-system,sans-serif;margin-top:2px;">다시 보기</button>
+    <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;color:#555;letter-spacing:0.03em;text-align:center;">${t('ad_blocked')}</span>
+    <button data-adsniper-action="unblock" style="background:none;border:1px solid #2a2a2a;color:#444;font-size:10px;padding:4px 14px;border-radius:4px;cursor:pointer;font-family:-apple-system,sans-serif;margin-top:2px;">${t('unblock')}</button>
   `
 }
 

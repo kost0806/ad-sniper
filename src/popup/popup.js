@@ -1,6 +1,18 @@
 import { getBlockedFingerprints, isSiteDisabled, disableSite, enableSite } from '../shared/storage.js'
+import { t } from '../shared/i18n.js'
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n
+    const val = t(key)
+    if (typeof val === 'string') el.innerHTML = val
+  })
+  document.getElementById('popup-hint').innerHTML = t('popup_hint')
+}
 
 async function init() {
+  applyI18n()
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab?.url || !tab.id) {
     showUnsupported()
@@ -43,7 +55,7 @@ async function init() {
 }
 
 function showUnsupported() {
-  document.getElementById('site-name').textContent = '지원되지 않는 페이지'
+  document.getElementById('site-name').textContent = t('popup_unsupported')
   document.getElementById('site-toggle').disabled = true
 }
 

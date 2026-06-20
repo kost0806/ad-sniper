@@ -1,6 +1,7 @@
 import { getBlockedFingerprints, serializeFingerprint, isSiteDisabled } from '../shared/storage.js'
 import { getFingerprint, matchesFingerprint, isAdIframe } from '../shared/fingerprint.js'
 import { replaceWithBlockedPage, blockWithFingerprint, isLocked, SESSION_BLOCKED } from './blocker.js'
+import { t } from '../shared/i18n.js'
 
 const isSubframe = window !== window.top
 
@@ -302,12 +303,12 @@ function showBlockMenu(x, y, adEl) {
 
   menu.innerHTML = `
     <div class="adsniper-menu-header">
-      <span class="adsniper-menu-title">🎯 Ad Sniper</span>
-      <button class="adsniper-menu-close" title="닫기">✕</button>
+      <span class="adsniper-menu-title">${t('menu_title')}</span>
+      <button class="adsniper-menu-close">✕</button>
     </div>
-    <button class="adsniper-block-btn">🚫 광고 차단하기</button>
+    <button class="adsniper-block-btn">${t('block_ad')}</button>
     <hr class="adsniper-divider"/>
-    <button class="adsniper-view-btn">광고 보기</button>
+    <button class="adsniper-view-btn">${t('view_ad')}</button>
   `
 
   menu.querySelector('.adsniper-menu-close').onclick = () => closeMenu()

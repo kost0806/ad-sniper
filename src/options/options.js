@@ -1,14 +1,27 @@
 import { getBlockedFingerprints, removeFingerprint, clearAll, serializeFingerprint } from '../shared/storage.js'
+import { t } from '../shared/i18n.js'
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n
+    const val = t(key)
+    if (typeof val === 'string') el.innerHTML = val
+  })
+  document.title = t('options_page_title')
+}
 
 async function render() {
   const list = await getBlockedFingerprints()
   const ul = document.getElementById('list')
-  document.getElementById('count').textContent = `${list.length}개 차단 중`
+  document.getElementById('count').textContent = t('options_count')(list.length)
 
   ul.innerHTML = ''
 
   if (list.length === 0) {
-    ul.innerHTML = '<li class="empty">차단된 광고가 없습니다.</li>'
+    const li = document.createElement('li')
+    li.className = 'empty'
+    li.textContent = t('options_empty')
+    ul.appendChild(li)
     return
   }
 
@@ -20,7 +33,11 @@ async function render() {
 
     const typeEl = document.createElement('span')
     typeEl.className = 'fp-type'
-    typeEl.textContent = fp.type === 'hostname' ? '도메인 차단' : fp.type === 'id' ? 'ID 차단' : '선택자 차단'
+    typeEl.textContent = fp.type === 'hostname'
+      ? t('fp_type_hostname')
+      : fp.type === 'id'
+        ? t('fp_type_id')
+        : t('fp_type_selector')
 
     const valEl = document.createElement('span')
     valEl.className = 'fp-value'
@@ -31,10 +48,9 @@ async function render() {
 
     const btn = document.createElement('button')
     btn.className = 'delete-btn'
-    btn.textContent = '삭제'
+    btn.textContent = t('options_delete')
     btn.addEventListener('click', async () => {
       await removeFingerprint(fp)
-      // Also remove network rule if hostname type
       if (fp.type === 'hostname') {
         chrome.runtime.sendMessage({ type: 'UNBLOCK', fingerprint: fp })
       }
@@ -47,8 +63,7 @@ async function render() {
 }
 
 document.getElementById('clear-all').addEventListener('click', async () => {
-  if (!confirm('모든 차단 패턴을 삭제할까요?')) return
-  // Remove all network rules too
+  if (!confirm(t('options_delete_confirm'))) return
   const list = await getBlockedFingerprints()
   for (const fp of list) {
     if (fp.type === 'hostname') {
@@ -59,4 +74,5 @@ document.getElementById('clear-all').addEventListener('click', async () => {
   render()
 })
 
+applyI18n()
 render()
