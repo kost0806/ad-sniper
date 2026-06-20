@@ -53,5 +53,5 @@ const lang = (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage?.()?.s
   ? 'ko'
   : 'en'
 
-export const t = (key) => messages[lang][key] ?? key
+export const t = (key) => messages[lang][key] ?? messages['en'][key] ?? key
 export const currentLang = lang
