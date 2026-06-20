@@ -11,12 +11,12 @@
     <img src="../../../icons/icon48.png" alt="Ad Sniper" class="logo" />
     <div class="title-block">
       <h1>Ad Sniper</h1>
-      <p class="subtitle">보기 싫은 광고만 차단</p>
+      <p class="subtitle" data-i18n="popup_subtitle"></p>
     </div>
   </div>
 
   <div class="site-row">
-    <span id="site-name" class="site-name">이 사이트</span>
+    <span id="site-name" class="site-name" data-i18n="popup_this_site"></span>
     <label class="toggle">
       <input type="checkbox" id="site-toggle" checked />
       <span class="slider"></span>
@@ -24,14 +24,14 @@
   </div>
 
   <div class="stats">
-    <span id="block-count">0</span>개 광고 차단됨
+    <span id="block-count">0</span><span id="blocked-suffix" data-i18n="popup_blocked_suffix"></span>
   </div>
 
   <div class="actions">
-    <button id="open-options">차단 목록 관리</button>
+    <button id="open-options" data-i18n="popup_manage"></button>
   </div>
 
-  <p class="hint">광고 위에 마우스를 올리고 <strong>클릭</strong>하여 차단하세요.</p>
+  <p class="hint" id="popup-hint"></p>
 
   <script type="module" src="./popup.js"></script>
 </body>
