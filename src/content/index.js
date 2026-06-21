@@ -322,7 +322,14 @@ function showBlockMenu(x, y, adEl) {
     closeMenu()
   }
 
-  menu.querySelector('.adsniper-view-btn').onclick = () => closeMenu()
+  menu.querySelector('.adsniper-view-btn').onclick = () => {
+    const iframe = adEl.tagName === 'IFRAME' ? adEl : adEl.querySelector('iframe[src]')
+    const url = iframe?.src
+    closeMenu()
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   document.body.appendChild(menu)
   menu.style.setProperty('left', x + 'px', 'important')
